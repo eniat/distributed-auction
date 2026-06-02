@@ -1,4 +1,4 @@
-# SCC.331 Coursework — Part 1 (Single-Server)
+# Part 1 (Single-Server)
 
 This project runs a FrontEnd (gRPC) and a single Auction Server (RMI).  
 Processes are started via `server.sh` and tracked with PID files under `.pids/` so they can be cleaned up safely.

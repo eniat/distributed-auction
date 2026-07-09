@@ -12,7 +12,6 @@ import java.util.*;
 
 public class FrontEndImpl extends AuctionServiceGrpc.AuctionServiceImplBase implements FrontEndAdmin {
 
-    //TODO:
     // Add state variables
     private volatile String sequencerName = null;
     private final List<String> memberNames = Collections.synchronizedList(new java.util.ArrayList<>());
@@ -26,7 +25,6 @@ public class FrontEndImpl extends AuctionServiceGrpc.AuctionServiceImplBase impl
 
     @Override 
     public void registerReplica(int id, String rmiName) throws RemoteException {
-        //TODO:
         // Add the new member to the list of members
         memberNames.add(rmiName);
         // If no sequencer (leader) assigned, make the first one to register the sequencer by calling setSequencer(true) on the replica
@@ -45,7 +43,6 @@ public class FrontEndImpl extends AuctionServiceGrpc.AuctionServiceImplBase impl
 
     @Override
     public void getSpec(GetSpecRequest req, StreamObserver<Item> resp) {
-        //TODO:
         // Call getSpec directly on the current sequencer
         try {
             // Call auction.getSpec(itemId) on the RMI server.
@@ -65,9 +62,7 @@ public class FrontEndImpl extends AuctionServiceGrpc.AuctionServiceImplBase impl
         } catch (Exception first) {
             // Handle any errors (you may need to elect a new leader if the current one has crashed) 
             try {
-                // I suggest you implement leader election in the skeleton method provided below (electNewLeader)
                 electNewLeader();
-                // NOTE: if you elect a new leader, you have to call getSpec on the new leader
                 AuctionItem ai = lookupLeader().getSpec(req.getItemId());
                 // If null, return an empty Item message.
                 if (ai == null) {
@@ -89,7 +84,6 @@ public class FrontEndImpl extends AuctionServiceGrpc.AuctionServiceImplBase impl
     // ===== gRPC: READS (direct to leader's Auction API) =====
     @Override
     public void listItems(Empty req, StreamObserver<ListReply> resp) {
-        //TODO:
         //Call listItems on the current sequencer
         try{
             // Call auction.listItems() on the RMI server.
@@ -107,9 +101,7 @@ public class FrontEndImpl extends AuctionServiceGrpc.AuctionServiceImplBase impl
         } catch (Exception first) {
             // Handle any errors (you may need to elect a new leader if the current one has crashed) 
             try{
-                // I suggest you implement leader election in the skeleton method provided below (electNewLeader)
                 electNewLeader();
-                // NOTE: if you elect a new leader, you have to call listItems on the new leader
                 AuctionItem[] items = lookupLeader().listItems();
                 ListReply.Builder replyBuilder = ListReply.newBuilder();
                 // Map each AuctionItem to the gRPC Item message.
@@ -128,34 +120,32 @@ public class FrontEndImpl extends AuctionServiceGrpc.AuctionServiceImplBase impl
     @Override
     public void register(RegisterRequest req, StreamObserver<RegisterReply> resp) {
 
-        //TODO: Suggested (high-level) steps
-        // Step 2: Create an Operation object (you can do: op = Operation.register(req.getEmail()))
+        // Create an Operation object (you can do: op = Operation.register(req.getEmail()))
         Operation op = Operation.register(req.getEmail());
 
-        // Step 1: Lookup the current sequencer (leader)
+        // Lookup the current sequencer (leader)
         try {
             ReplicatedAuction leader = lookupLeader();
             List<String> currentMembers;
             synchronized (memberNames) {
                 currentMembers = new ArrayList<>(memberNames);
             }
-            // Step 3: Call the handleClientOperation on the leader, passing the operation and current list of members (including leader)
+            // Call the handleClientOperation on the leader, passing the operation and current list of members (including leader)
             OperationResult result = leader.handleClientOperation(op, currentMembers);
-            // Step 4: Collect OperationResult returned by the call and return it back to the client using gRPC
+            // Collect OperationResult returned by the call and return it back to the client using gRPC
             resp.onNext(RegisterReply.newBuilder().setUserId(result.userId).build());
             resp.onCompleted();
         } catch (Exception first ) {
             try {
-                // NOTE: you must handle leader failure (elect new one and repeat step 3 on the new leader)
                 electNewLeader();
                 ReplicatedAuction leader = lookupLeader();
                 List<String> currentMembers;
                 synchronized (memberNames) {
                     currentMembers = new ArrayList<>(memberNames);
                 }
-                // Step 3: Call the handleClientOperation on the leader, passing the operation and current list of members (including leader)
+                // Call the handleClientOperation on the leader, passing the operation and current list of members (including leader)
                 OperationResult result = leader.handleClientOperation(op, currentMembers);
-                // Step 4: Collect OperationResult returned by the call and return it back to the client using gRPC
+                // Collect OperationResult returned by the call and return it back to the client using gRPC
                 resp.onNext(RegisterReply.newBuilder().setUserId(result.userId).build());
                 resp.onCompleted();
             } catch (Exception second) {resp.onError(second);}
@@ -165,34 +155,32 @@ public class FrontEndImpl extends AuctionServiceGrpc.AuctionServiceImplBase impl
     // ===== gRPC: State-mutating calls =====
     @Override
     public void newAuction(NewAuctionRequest req, StreamObserver<NewAuctionReply> resp) {
-        //TODO: Suggested (high-level) steps
-        // Step 2: Create an Operation object (you can do: op = Operation.newAuction(...))
+        // Create an Operation object (you can do: op = Operation.newAuction(...))
         Operation op = Operation.newAuction(req.getUserId(), req.getName(), req.getDescription(), req.getReservePrice());
-        // Step 1: Lookup the current sequencer (leader)
+        // Lookup the current sequencer (leader)
         try {
             ReplicatedAuction leader = lookupLeader();
             List<String> currentMembers;
             synchronized (memberNames) {
                 currentMembers = new ArrayList<>(memberNames);
             }
-            // Step 3: Call the handleClientOperation on the leader, passing the operation and current list of members (including leader)
+            // Call the handleClientOperation on the leader, passing the operation and current list of members (including leader)
             OperationResult result = leader.handleClientOperation(op, currentMembers);
-            // Step 4: Collect OperationResult returned by the call and return it back to the client using gRPC
+            // Collect OperationResult returned by the call and return it back to the client using gRPC
             resp.onNext(NewAuctionReply.newBuilder().setItemId(result.itemId).build());
             resp.onCompleted();
         } catch (Exception first) {
-            // NOTE: you must handle leader failure (elect new one and repeat step 3 on the new leader)
             try {
                 electNewLeader();
-                // Step 3: Call the handleClientOperation on the leader, passing the operation and current list of members (including leader)
+                // Call the handleClientOperation on the leader, passing the operation and current list of members (including leader)
                 ReplicatedAuction leader = lookupLeader();
                 List<String> currentMembers;
                 synchronized (memberNames) {
                     currentMembers = new ArrayList<>(memberNames);
                 }
-                // Step 3: Call the handleClientOperation on the leader, passing the operation and current list of members (including leader)
+                // Call the handleClientOperation on the leader, passing the operation and current list of members (including leader)
                 OperationResult result = leader.handleClientOperation(op, currentMembers);
-                // Step 4: Collect OperationResult returned by the call and return it back to the client using gRPC
+                // Collect OperationResult returned by the call and return it back to the client using gRPC
                 resp.onNext(NewAuctionReply.newBuilder().setItemId(result.itemId).build());
                 resp.onCompleted();
                 } catch (Exception second) {resp.onError(second);}
@@ -201,25 +189,23 @@ public class FrontEndImpl extends AuctionServiceGrpc.AuctionServiceImplBase impl
 
     @Override
     public void bid(BidRequest req, StreamObserver<BidReply> resp) {
-        //TODO: Suggested (high-level) steps
-        // Step 2: Create an Operation object (you can do: op = Operation.bid(req.getUserId(), ...))
+        // Create an Operation object (you can do: op = Operation.bid(req.getUserId(), ...))
         Operation op = Operation.bid(req.getUserId(), req.getItemId(), req.getPrice());
-        // Step 1: Lookup the current sequencer (leader)
+        // Lookup the current sequencer (leader)
         try {
             ReplicatedAuction leader = lookupLeader();
             List<String> currentMembers;
             synchronized (memberNames) {
                 currentMembers = new ArrayList<>(memberNames);
             }
-            // Step 3: Call the handleClientOperation on the leader, passing the operation and current list of members (including leader)
+            // Call the handleClientOperation on the leader, passing the operation and current list of members (including leader)
             OperationResult result = leader.handleClientOperation(op, currentMembers);
             boolean success = result.bidOk;
-            // Step 4: Collect OperationResult returned by the call and return it back to the client using gRPC
+            // Collect OperationResult returned by the call and return it back to the client using gRPC
             // Build and return a BidReply with success=true/false.
             resp.onNext(BidReply.newBuilder().setSuccess(success).build());
             resp.onCompleted();
         } catch (Exception first) {
-            // NOTE: you must handle leader failure (elect new one and repeat step 3 on the new leader)
             try {
                 electNewLeader();
                 ReplicatedAuction leader = lookupLeader();
@@ -227,10 +213,10 @@ public class FrontEndImpl extends AuctionServiceGrpc.AuctionServiceImplBase impl
                 synchronized (memberNames) {
                     currentMembers = new ArrayList<>(memberNames);
                 }
-                // Step 3: Call the handleClientOperation on the leader, passing the operation and current list of members (including leader)
+                // Call the handleClientOperation on the leader, passing the operation and current list of members (including leader)
                 OperationResult result = leader.handleClientOperation(op, currentMembers);
                 boolean success = result.bidOk;
-                // Step 4: Collect OperationResult returned by the call and return it back to the client using gRPC
+                // Collect OperationResult returned by the call and return it back to the client using gRPC
                 // Build and return a BidReply with success=true/false.
                 resp.onNext(BidReply.newBuilder().setSuccess(success).build());
                 resp.onCompleted();
@@ -240,20 +226,19 @@ public class FrontEndImpl extends AuctionServiceGrpc.AuctionServiceImplBase impl
 
     @Override
     public void closeAuction(CloseRequest req, StreamObserver<AuctionResult> resp) {
-        //TODO: Suggested (high-level) steps
-        // Step 2: Create an Operation object (you can do: op = Operation.close(req.getUserId(), ...))
+        // Create an Operation object (you can do: op = Operation.close(req.getUserId(), ...))
         Operation op = Operation.close(req.getUserId(), req.getItemId());
-        // Step 1: Lookup the current sequencer (leader)
+        // Lookup the current sequencer (leader)
         try{
             ReplicatedAuction leader = lookupLeader();
             List<String> currentMembers;
             synchronized (memberNames) {
                 currentMembers = new ArrayList<>(memberNames);
             }
-            // Step 3: Call the handleClientOperation on the leader, passing the operation and current list of members (including leader)
+            // Call the handleClientOperation on the leader, passing the operation and current list of members (including leader)
             OperationResult result = leader.handleClientOperation(op, currentMembers);
             AuctionResult reply;
-            // Step 4: Collect OperationResult returned by the call and return it back to the client using gRPC
+            // Collect OperationResult returned by the call and return it back to the client using gRPC
             if (!result.ok) {
                 reply = AuctionResult.newBuilder().setItemId(0).setPrice(0).setWinningUser(0).build();
             } else {
@@ -263,7 +248,6 @@ public class FrontEndImpl extends AuctionServiceGrpc.AuctionServiceImplBase impl
             resp.onNext(reply);
             resp.onCompleted();
         } catch (Exception first) {
-            // NOTE: you must handle leader failure (elect new one and repeat step 3 on the new leader)
             try{
                 electNewLeader();
                 ReplicatedAuction leader = lookupLeader();
@@ -271,10 +255,10 @@ public class FrontEndImpl extends AuctionServiceGrpc.AuctionServiceImplBase impl
                 synchronized (memberNames) {
                     currentMembers = new ArrayList<>(memberNames);
                 }
-                // Step 3: Call the handleClientOperation on the leader, passing the operation and current list of members (including leader)
+                // Call the handleClientOperation on the leader, passing the operation and current list of members (including leader)
                 OperationResult result = leader.handleClientOperation(op, currentMembers);
                 AuctionResult reply;
-                // Step 4: Collect OperationResult returned by the call and return it back to the client using gRPC
+                // Collect OperationResult returned by the call and return it back to the client using gRPC
                 if (!result.ok) {
                     reply = AuctionResult.newBuilder().setItemId(0).setPrice(0).setWinningUser(0).build();
                 } else {
@@ -287,9 +271,7 @@ public class FrontEndImpl extends AuctionServiceGrpc.AuctionServiceImplBase impl
         }
     }
 
-    // I suggest implementing leader election in this method and calling from other methods when needed
     private synchronized void electNewLeader() {
-        //TODO:
         String highestReplica = null;
         long highestCommitted = -1;
         // probe all members, pick the replica that reports the highest lastCommitted (if tie → pick any)
@@ -305,7 +287,7 @@ public class FrontEndImpl extends AuctionServiceGrpc.AuctionServiceImplBase impl
                 // Ignore unreachable
             }
         }
-        // Call setSequencer(true) on the selected replica (optionally call setSequencer(false) on the others)
+        // Call setSequencer(true) on the selected replica
         if (highestReplica == null) {
             sequencerName = null;
             return;
@@ -331,8 +313,7 @@ public class FrontEndImpl extends AuctionServiceGrpc.AuctionServiceImplBase impl
         sequencerName = highestReplica; 
         System.out.println("Elected new sequencer: " + sequencerName);
     }
-    
-    // ===== Helpers that may be useful =====
+
     
     // Looks up and returns a remote reference to the specified replica in the local RMI registry.
     private ReplicatedAuction lookup(String rmiName) throws Exception {

@@ -18,9 +18,7 @@ public class AuctionClient {
         int carol = stub.register(RegisterRequest.newBuilder().setEmail("carol@lancaster.ac.uk").build()).getUserId();
         System.out.printf("Users -> alice=%d bob=%d carol=%d%n", alice, bob, carol);
 
-        // TODO:  make sure to test the functionality before submitting!
- 
-        // 1. Start a few auctions using one or more of the registered users.
+        // Start a few auctions using one or more of the registered users.
         System.out.println("Starting auctions");
         //    - Construct and send NewAuctionRequest messages.
         int item1 = stub.newAuction(NewAuctionRequest.newBuilder().setUserId(alice).setName("thing1")
@@ -30,7 +28,7 @@ public class AuctionClient {
         //    - Print returned item IDs.
         System.out.printf("Auctions: item1=%d item2=%d%n", item1, item2);
         //
-        // 2. Have multiple users place bids on these items.
+        // Have multiple users place bids on these items.
         //    - Use BidRequest messages.
         System.out.println("Placing bids");
         boolean bid1 = stub.bid(BidRequest.newBuilder().setUserId(bob).setItemId(item1).setPrice(15).build()).getSuccess();
@@ -39,26 +37,26 @@ public class AuctionClient {
         //    - Print whether each bid was accepted or rejected.
         System.out.printf("Bids: bob for item1(15)=%b, carol for item1(8)=%b, alice foritem2(25)=%b%n", bid1, bid2, bid3);
         //
-        // 3. Test listing and inspecting items.
+        // Test listing and inspecting items.
         //    - Call listItems() to verify current highest bids and reserve prices.
         System.out.println("Listing items");
         var listResp = stub.listItems(Empty.newBuilder().build());
         for (var item : listResp.getItemsList()) {
             System.out.printf("ItemID=%d Name=%s Desc=%s Reserve=%d HighestBid=%d%n",item.getItemId(), item.getName(), item.getDescription(), item.getReservePrice(), item.getHighestBid());
         }
-        //    - Optionally call getSpec() for a specific item.
+        //    - call getSpec() for a specific item.
         System.out.println("Getting spec for item1");
         var specResp = stub.getSpec(GetSpecRequest.newBuilder().setItemId(item1).build());
         System.out.printf("ItemID=%d Name=%s Desc=%s Reserve=%d HighestBid=%d%n",specResp.getItemId(), specResp.getName(), specResp.getDescription(), specResp.getReservePrice(), specResp.getHighestBid());
         //
-        // 4. Close an auction.
+        // Close an auction.
         //    - Ensure only the creator can close it.
         System.out.println("Closing auction for item1 by owner");
         frontend.AuctionResult closeRespOwner = stub.closeAuction(CloseRequest.newBuilder().setUserId(alice).setItemId(item1).build());
         //    - Print the returned AuctionResult.
         System.out.printf("Closed itemid=%d: WinningUser=%d Price=%d%n",closeRespOwner.getItemId(), closeRespOwner.getWinningUser(), closeRespOwner.getPrice());
         //
-        // 5. Try edge cases:
+        // Try edge cases:
         //    - Bidding on a non-existent item.
         System.out.println("Bidding on non-existent item");
         boolean bidNonExist = stub.bid(BidRequest.newBuilder().setUserId(bob).setItemId(9999).setPrice(50).build()).getSuccess();
@@ -76,7 +74,7 @@ public class AuctionClient {
         frontend.AuctionResult closeRespNonOwner = stub.closeAuction(CloseRequest.newBuilder().setUserId(carol).setItemId(item2).build());
         System.out.printf("Should be all zeros Closed itemid=%d: WinningUser=%d Price=%d%n",closeRespNonOwner.getItemId(), closeRespNonOwner.getWinningUser(), closeRespNonOwner.getPrice());
         //
-        // 6. Print a summary of expected vs. actual outcomes for basic validation.
+        // Print a summary of expected vs. actual outcomes for basic validation.
         System.out.println("Finsihed tests");
         System.out.println("bob bid on item1 above reserve: expected=true actual=" + bid1);
         System.out.println("carol bid on item1 below reserve: expected=false actual=" + bid2);

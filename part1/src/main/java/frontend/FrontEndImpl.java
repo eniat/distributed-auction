@@ -24,7 +24,6 @@ public class FrontEndImpl extends AuctionServiceGrpc.AuctionServiceImplBase {
 
     @Override
     public void newAuction(NewAuctionRequest req, StreamObserver<NewAuctionReply> resp) {
-        // TODO:
         // Construct an AuctionSaleItem from the gRPC request fields.
         try {
             // Forward newAuction(userId, item) to the RMI Auction server.
@@ -38,7 +37,6 @@ public class FrontEndImpl extends AuctionServiceGrpc.AuctionServiceImplBase {
 
     @Override
     public void bid(BidRequest req, StreamObserver<BidReply> resp) {
-        // TODO:
         // Forward bid(userId, itemId, price) to the RMI Auction server.
         try {
             boolean success = auction.bid(req.getUserId(), req.getItemId(), req.getPrice());
@@ -50,7 +48,6 @@ public class FrontEndImpl extends AuctionServiceGrpc.AuctionServiceImplBase {
 
     @Override
     public void listItems(Empty req, StreamObserver<ListReply> resp) {
-        // TODO:
         try{
             // Call auction.listItems() on the RMI server.
             AuctionItem[] items = auction.listItems();
@@ -70,7 +67,6 @@ public class FrontEndImpl extends AuctionServiceGrpc.AuctionServiceImplBase {
 
     @Override
     public void getSpec(GetSpecRequest req, StreamObserver<Item> resp) {
-        // TODO:
         try {
             // Call auction.getSpec(itemId) on the RMI server.
             AuctionItem ai = auction.getSpec(req.getItemId());
@@ -91,7 +87,6 @@ public class FrontEndImpl extends AuctionServiceGrpc.AuctionServiceImplBase {
 
     @Override
     public void closeAuction(CloseRequest req, StreamObserver<AuctionResult> resp) {
-        // TODO:
         try{
             // Forward closeAuction(userId, itemId) to the RMI Auction server.
             server.AuctionResult result = auction.closeAuction(req.getUserId(), req.getItemId());

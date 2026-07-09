@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class AuctionImpl extends UnicastRemoteObject implements Auction {
-    // TODO declare (thread-safe) state variables to keep track of users,items,auction owners, etc.
+    // Declare (thread-safe) state variables to keep track of users,items,auction owners, etc.
     private final Map<Integer, String> users;
     private final Map<Integer, AuctionItem> items;
     private final Set<Integer> closedItems ;
@@ -30,18 +30,16 @@ public class AuctionImpl extends UnicastRemoteObject implements Auction {
 
     @Override
     public synchronized int register(String email) {
-        // TODO:
         // - Allocate a new userID
         int newUserId = userIdCounter.getAndIncrement();
         users.put(newUserId, email);   
         // - Record mapping userID -> email
         // - Return the new userID
-        return newUserId; // TODO: replace with allocated userID
+        return newUserId; // replace with allocated userID
     }
 
     @Override
     public synchronized int newAuction(int userID, AuctionSaleItem item) {
-        // TODO:
         // - If userID not registered, return -1 
         if (!users.containsKey(userID)) {
             return -1;
@@ -54,12 +52,11 @@ public class AuctionImpl extends UnicastRemoteObject implements Auction {
         items.put(newItemId, ai);
         itemOwners.put(newItemId, userID);
         // - Return itemID
-        return newItemId; // TODO: replace with itemID or -1 on failure
+        return newItemId; // Replace with itemID or -1 on failure
     }
 
     @Override
     public synchronized AuctionItem getSpec(int itemID) {
-        // TODO:
         // - Return the AuctionItem for itemID, or null if not found
         AuctionItem item = items.get(itemID);
         if (item == null) {
@@ -70,7 +67,6 @@ public class AuctionImpl extends UnicastRemoteObject implements Auction {
 
     @Override
     public synchronized AuctionItem[] listItems() {
-        // TODO:
         // - Return all currently active items (do not return items from closed auctions).
         Collection<AuctionItem> vals = items.values();
         return vals.toArray(new AuctionItem[0]);
@@ -78,7 +74,6 @@ public class AuctionImpl extends UnicastRemoteObject implements Auction {
 
     @Override
     public synchronized boolean bid(int userID, int itemID, int price) {
-        // TODO:
         // - If item missing OR user unknown OR item already closed -> return false.
         if (!items.containsKey(itemID) || !users.containsKey(userID) || closedItems.contains(itemID)) {
             return false;
@@ -97,7 +92,6 @@ public class AuctionImpl extends UnicastRemoteObject implements Auction {
 
     @Override
     public synchronized AuctionResult closeAuction(int userID, int itemID) {
-        // TODO:
         // - Look up item; if missing, return null.
         AuctionItem item = items.get(itemID);
         if (item == null) {

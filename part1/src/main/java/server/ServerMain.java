@@ -4,7 +4,7 @@ package server;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
-//No need to modify this file - it start the AuctionServer and registers with RMI
+// It starts the AuctionServer and registers with RMI
 
 public class ServerMain {
     public static void main(String[] args) throws Exception {

@@ -4,9 +4,9 @@
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
-  <groupId>uk.ac.lancs.scc331</groupId>
-  <artifactId>auction-part1</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <groupId>io.github.eniat</groupId>
+  <artifactId>distributed-auction-part1</artifactId>
+  <version>1.0.0</version>
   <packaging>jar</packaging>
 
   <properties>

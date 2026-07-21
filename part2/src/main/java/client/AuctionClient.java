@@ -13,9 +13,9 @@ public class AuctionClient {
         var stub = AuctionServiceGrpc.newBlockingStub(ch);
 
         // Register three users
-        int alice = stub.register(RegisterRequest.newBuilder().setEmail("alice@lancaster.ac.uk").build()).getUserId();
-        int bob   = stub.register(RegisterRequest.newBuilder().setEmail("bob@lancaster.ac.uk").build()).getUserId();
-        int carol = stub.register(RegisterRequest.newBuilder().setEmail("carol@lancaster.ac.uk").build()).getUserId();
+        int alice = stub.register(RegisterRequest.newBuilder().setEmail("alice@example.com").build()).getUserId();
+        int bob   = stub.register(RegisterRequest.newBuilder().setEmail("bob@example.com").build()).getUserId();
+        int carol = stub.register(RegisterRequest.newBuilder().setEmail("carol@example.com").build()).getUserId();
         System.out.printf("Users -> alice=%d bob=%d carol=%d%n", alice, bob, carol);
  
         // Start a few auctions using one or more of the registered users.
